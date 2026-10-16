@@ -234,12 +234,24 @@ def main() -> int:
     if actual_repo != lock["repo_tool"]["commit"]:
         raise RuntimeError("repo tool checkout differs from pinned revision")
     verified = False
+    sync_attempt = 0
     try:
-        run([
-            str(launcher), "sync", "-c", f"-j{args.jobs}", "--no-tags",
-            "--no-clone-bundle", "--optimized-fetch", "--retry-fetches=3",
-            "--fail-fast",
-        ], cwd=workspace)
+        # Repo's per-fetch retry did not recover a real Googlesource HTTP 503
+        # on the first hosted run. Finish independent fetches, then retry the
+        # remaining projects in the same workspace rather than discarding it.
+        for sync_attempt in range(1, 4):
+            try:
+                run([
+                    str(launcher), "sync", "-c", f"-j{args.jobs}", "--no-tags",
+                    "--no-clone-bundle", "--optimized-fetch", "--retry-fetches=3",
+                ], cwd=workspace)
+                break
+            except subprocess.CalledProcessError:
+                if sync_attempt == 3:
+                    raise
+                delay = 15 * sync_attempt
+                print(f"Source sync attempt {sync_attempt} failed; retrying incomplete projects in {delay}s", flush=True)
+                time.sleep(delay)
         # Preserve repo's actual resolved manifest, including all linkfile and
         # copyfile directives, before any separate build-compatibility patches.
         run([
@@ -253,6 +265,7 @@ def main() -> int:
             "elapsed_seconds": round(time.time() - started, 1),
             "free_gib_after_sync": round(shutil.disk_usage(workspace).free / (1024 ** 3), 2),
             "verification_complete": verified,
+            "sync_attempts": sync_attempt,
         })
     print(f"Sources verified; resolved manifest: {metadata / 'resolved-manifest.xml'}", flush=True)
     return 0

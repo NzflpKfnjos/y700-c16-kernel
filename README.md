@@ -8,6 +8,8 @@
 
 工作流：[Build elden kernel 6.12](.github/workflows/build-kernel.yml)。使用普通 GitHub 托管的 Ubuntu 24.04 x86_64 runner，手动触发，单次只跑一个构建。
 
+实际执行和排错记录见 [Actions 构建记录](docs/kernel-upgrade/actions-build.md)。
+
 ```sh
 gh workflow run build-kernel.yml --repo NzflpKfnjos/y700-c16-kernel --ref main
 gh run list --repo NzflpKfnjos/y700-c16-kernel --workflow build-kernel.yml
