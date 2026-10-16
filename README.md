@@ -1,6 +1,6 @@
 # Y700 四代 elden：6.12 内核构建
 
-为 `TB322FC_CN / SM8750 sun` 的 `c16-300-9008-V17.6` 一加系统移植包准备 Linux 6.12 内核组件。当前正在 GitHub Actions 上执行完整组件构建，尚无通过验证的可刷写升级包。
+为 `TB322FC_CN / SM8750 sun` 的 `c16-300-9008-V17.6` 一加系统移植包准备 Linux 6.12 内核组件。GitHub Actions 已完成组件构建和静态检查；尚无经过完整 ColorOS 集成与真机硬件验证的升级包。
 
 原包基线为 Android 16 系统层、Android 15 厂商层，以及 4 KiB 页的 `6.6.89-android15-8` 内核。原始镜像保留在本地并由 `.gitignore` 排除。
 
@@ -8,18 +8,19 @@
 
 工作流：[Build elden kernel 6.12](.github/workflows/build-kernel.yml)。使用普通 GitHub 托管的 Ubuntu 24.04 x86_64 runner，手动触发，单次只跑一个构建。
 
-实际执行和排错记录见 [Actions 构建记录](docs/kernel-upgrade/actions-build.md)。
+实际执行、产物下载和排错记录见 [Actions 构建记录](docs/kernel-upgrade/actions-build.md)。
 
 ```sh
 gh workflow run build-kernel.yml --repo NzflpKfnjos/y700-c16-kernel --ref main
 gh run list --repo NzflpKfnjos/y700-c16-kernel --workflow build-kernel.yml
 ```
 
-流程：清理 runner 的预装 SDK → 同步冻结的公开源码 → 配置 Qualcomm Kleaf 工作区 → 构建 sun/elden perf 目标 → 检查 ARM64/6.12/4 KiB 页/模块 → 保存产物。
+流程：清理 runner 的预装 SDK → 同步冻结的公开源码 → 配置 Qualcomm Kleaf 工作区 → 构建 sun/elden perf 目标 → 检查 ARM64/6.12/4 KiB 页/模块/设备树 → 保存产物。
 
 - 每次运行均尝试保存 `elden-6.12-diagnostics-运行编号`，包含同步、构建日志以及实际解析的源码清单。
 - 构建和组件检查通过后才上传 `elden-6.12-components-运行编号`，包含压缩后的 dist、SHA256 和检查说明。
 - 产物保存 7 天，不自动发布 GitHub Release。
+- 成功运行：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38936781318>；产物中的 `boot.img` 使用与原 ROM 根密钥一致的 RSA4096 AVB 公钥，可用项目签名工具验证。
 
 ## 构建输入与边界
 

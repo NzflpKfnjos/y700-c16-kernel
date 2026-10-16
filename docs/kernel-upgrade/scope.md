@@ -5,12 +5,12 @@
 - in_scope：读取本地分区镜像、提取内核配置和模块元数据、核对公开源码、保存检查脚本与工程记录。
 - network_profile：公开文档和公开 Git 仓库只读检索。
 - 最初阶段实际执行：离线静态检查，未进行源码编译、分区重打包或设备刷写。
-- 当前结果：升级前检查已完成，GitHub Actions 编译正在进行，升级本身尚未完成；尚无真机启动测试结果。
+- 当前结果：GitHub Actions 组件构建和静态检查已通过；完整升级、ROM 集成和真机硬件测试尚未完成。用户已实测锁定 BL 下签名后的 KSU `init_boot` 可开机。
 - 用户补充：当前没有可用的 Linux 编译环境，随后授权使用 GitHub Actions 云端编译。
 
 ## GitHub Actions 构建阶段
 
 - 用户后续明确授权使用 GitHub Actions 编译构建。
-- 范围扩展：准备并上传构建脚本/源码锁、创建私有构建仓库、触发并排查标准 GitHub 托管 Linux runner 的构建、下载和检查构建产物。原始系统镜像保留本地。
-- 已创建私有仓库：<https://github.com/NzflpKfnjos/y700-c16-kernel>。
+- 范围扩展：准备并上传构建脚本/源码锁、创建公开构建仓库、触发并排查标准 GitHub 托管 Linux runner 的构建、下载和检查构建产物。原始系统镜像保留本地。
+- 已创建公开仓库：<https://github.com/NzflpKfnjos/y700-c16-kernel>。
 - 该授权用于云端编译，不代表真机启动和硬件验证已经完成。

@@ -1,6 +1,6 @@
 # GitHub Actions 6.12 构建记录
 
-仓库：<https://github.com/NzflpKfnjos/y700-c16-kernel>（私有）。用户已明确授权使用 GitHub Actions 编译。
+仓库：<https://github.com/NzflpKfnjos/y700-c16-kernel>（公开）。用户已明确授权使用 GitHub Actions 编译。
 
 ## 首次运行
 
@@ -34,9 +34,17 @@
 - URL：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38936781318>。
 - 触发时间：2026-10-17 01:03:51（Asia/Singapore）。
 - 提交：`4ee6e9a6443f5af654bdcb95eeb92244058506ca`。
-- 状态：已启动；以运行终态及诊断产物记录最终结果。
-- 已确认：源码同步、工作区准备与目标加载全部通过；2026-10-17 01:14:44（Asia/Singapore）进入内核、模块和设备树编译。
+- 状态：成功；2026-10-17 02:41:20（Asia/Singapore）全部步骤完成。compile 用时 1:25:46，verify 用时 13 秒，bundle 用时 23 秒，两个 artifact 上传成功。
+- 产物：`component_checks_passed`；Image banner 为 `6.12.81-android16-6-maybe-dirty-4k`，4 KiB 页，490 个模块条目，8 个基础 DTB、16 个 techpack DTBO 和 1 个 `sun-elden-overlay.dtbo` 均通过检查。产物不是完整 ROM，也未进行真机启动测试。
+- 本地二次校验：组件包 SHA256 为 `3796922b0fe43926c671231499a16b6f3b1dd593f67fedaac2d2a6d70580718c`；`verify_dist.py` 再次返回 `component_checks_passed`，设备树检查通过。
+- 原 ROM 加载表对照为信息性结果：362 个规范化请求名匹配，56 个待审查；普通 vendor ramdisk 16 项、recovery 55 项、vendor_dlkm 40 项缺失。5 个 `oplus_*` 请求均未出现在产物名称中，不能直接用旧 6.6 二进制补齐，需确认替代实现和 ColorOS HAL 依赖。
 - 本轮 query 与 compile 分步展示，Bazel 和 Kbuild 并发均为 2，每 60 秒记录 runner 进程、内存和磁盘使用情况；不再仅凭步骤持续时间取消任务。
+
+### AVB 与锁定 BL 实测
+
+项目中的 `avb签名工具` 使用 `testkey_rsa4096.pem` 的 AVB 公钥 SHA-1 `2597c218aae470a130f61162feaae70afd97f011`；原 ROM `vbmeta.img`、`vbmeta_system.img` 及组件构建的 `boot.img` 都报告同一摘要和 `SHA256_RSA4096`。对组件 `boot.img` 执行 `avbtool verify_image` 已成功。用户另行实测：锁定 BL 状态下，将 KSU 修补的 `init_boot` 用该工具签名后可以开机；这为该设备信任根接受该签名提供了设备侧证据。
+
+这不等于任意新镜像都可直接刷写。升级仍需把同一构建的 `boot.img`、`init_boot`、`vendor_boot.img`、`dtbo.img`、`system_dlkm`/`vendor_dlkm` 与原 ROM 的分区布局、hash/chain descriptor、rollback index、ramdisk 加载表和 HAL 依赖整合；每次改动都要更新并验证对应 `vbmeta` 描述符。项目目录内的 RSA 私钥已随公开仓库历史存在，任何公开仓库访问者都可使用它生成被该信任根接受的签名，属于必须知情的密钥暴露风险。
 
 ## 本轮补齐的构建输入
 
