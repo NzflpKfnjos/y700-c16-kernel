@@ -27,12 +27,15 @@
 
 原 ROM 的纯元数据对照已保存在 [rom-baseline.json](../../ci/rom-baseline.json)：包含内核 banner、源镜像哈希、329 个 vendor ramdisk 模块名和 116 条早期加载项，不含固件二进制。后续校验器会列出新构建中缺失的原包模块供集成核对；原包含多平台驱动，因此不能只凭名称缺失自动判定启动必败。
 
+进一步的分阶段加载基线见 [rom-module-load-baseline.json](../../ci/rom-module-load-baseline.json)：普通 vendor ramdisk 116 条、recovery 321 条、vendor_dlkm 438 条、system_dlkm 0 条，保留重复及源行号，共 418 个不同的规范化请求名。单独保存的 modules.dep 是原包依赖声明，不代表新构建已经满足依赖。
+
 ## 第三次运行
 
 - URL：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38936781318>。
 - 触发时间：2026-10-17 01:03:51（Asia/Singapore）。
 - 提交：`4ee6e9a6443f5af654bdcb95eeb92244058506ca`。
 - 状态：已启动；以运行终态及诊断产物记录最终结果。
+- 已确认：源码同步、工作区准备与目标加载全部通过；2026-10-17 01:14:44（Asia/Singapore）进入内核、模块和设备树编译。
 - 本轮 query 与 compile 分步展示，Bazel 和 Kbuild 并发均为 2，每 60 秒记录 runner 进程、内存和磁盘使用情况；不再仅凭步骤持续时间取消任务。
 
 ## 本轮补齐的构建输入
@@ -57,3 +60,14 @@
 通过条件包括 ARM64 Image 的 6.12.x banner、4 KiB Image 标记与内核配置、模块版本及其补丁号与 Image 一致、符号版本节、指定设备驱动和 DTB/DTBO 镜像存在。损坏归档或解压失败也会导致失败，并保存诊断。
 
 该检查不代替完整 Module.symvers/KMI 检查、现有 vendor HAL 的 UAPI 验证、ramdisk 模块加载顺序和真机测试。当前构建系统生成的 DLKM-only `super.img` 与 ROM 完整 super 不同；默认测试签名和通用 boot 参数也需要进一步集成。只有构建与上述检查都通过，才上传组件压缩包；失败时保留诊断产物。
+
+下载并解包构建产物后，可执行同一校验器，再生成分阶段模块名称对照：
+
+```sh
+python3 tools/ci/verify_dist.py --dist .work/actions/run-3-dist --out .work/actions/run-3-verification
+python3 tools/ci/compare_rom_modules.py \
+  --report .work/actions/run-3-verification/component-checks.json \
+  --out .work/actions/run-3-module-comparison.json
+```
+
+`compare_rom_modules.py` 只创建指定的新 JSON，拒绝覆盖已有输出；缺项为集成线索，不改变上游组件检查结论。名称存在不等于 ABI 或依赖闭包通过；改名、内建驱动和替代实现仍需单独核对。一加 `oplus_` 请求会单列，以便检查 ColorOS 特有接口。
