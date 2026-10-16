@@ -44,7 +44,7 @@
 
 项目中的 `avb签名工具` 使用 `testkey_rsa4096.pem` 的 AVB 公钥 SHA-1 `2597c218aae470a130f61162feaae70afd97f011`；原 ROM `vbmeta.img`、`vbmeta_system.img` 及组件构建的 `boot.img` 都报告同一摘要和 `SHA256_RSA4096`。对组件 `boot.img` 执行 `avbtool verify_image` 已成功。用户另行实测：锁定 BL 状态下，将 KSU 修补的 `init_boot` 用该工具签名后可以开机；这为该设备信任根接受该签名提供了设备侧证据。
 
-这不等于任意新镜像都可直接刷写。升级仍需把同一构建的 `boot.img`、`init_boot`、`vendor_boot.img`、`dtbo.img`、`system_dlkm`/`vendor_dlkm` 与原 ROM 的分区布局、hash/chain descriptor、rollback index、ramdisk 加载表和 HAL 依赖整合；每次改动都要更新并验证对应 `vbmeta` 描述符。项目目录内的 RSA 私钥已随公开仓库历史存在，任何公开仓库访问者都可使用它生成被该信任根接受的签名，属于必须知情的密钥暴露风险。
+这不等于任意新镜像都可直接刷写。当前已将 6.12 `boot.img`、`vendor_boot.img`、`dtbo.img`、DLKM 分区与更新后的 AVB 描述符集成进原包的静态 9008 候选；仍需将实际 KSU patched `init_boot` 纳入相同 AVB 描述符并完成真机刷写/启动验证。项目目录内的 RSA 私钥已随公开仓库历史存在，任何公开仓库访问者都可使用它生成被该信任根接受的签名，属于必须知情的密钥暴露风险。
 
 ## 本轮补齐的构建输入
 
@@ -67,7 +67,7 @@
 
 通过条件包括 ARM64 Image 的 6.12.x banner、4 KiB Image 标记与内核配置、模块版本及其补丁号与 Image 一致、符号版本节、指定设备驱动和 DTB/DTBO 镜像存在。损坏归档或解压失败也会导致失败，并保存诊断。
 
-该检查不代替完整 Module.symvers/KMI 检查、现有 vendor HAL 的 UAPI 验证、ramdisk 模块加载顺序和真机测试。当前构建系统生成的 DLKM-only `super.img` 与 ROM 完整 super 不同；默认测试签名和通用 boot 参数也需要进一步集成。只有构建与上述检查都通过，才上传组件压缩包；失败时保留诊断产物。
+该检查不代替完整 Module.symvers/KMI 检查、现有 vendor HAL 的 UAPI 验证、ramdisk 模块加载顺序和真机测试。Actions 构建系统生成的 DLKM-only `super.img` 与 ROM 完整 super 不同；本地候选组装步骤将 DLKM 镜像整合进原 ROM 的完整 super，并沿用原包 AVB 链。候选仍未经过设备验证。只有构建与上述检查都通过，才上传组件压缩包；失败时保留诊断产物。
 
 下载并解包构建产物后，可执行同一校验器，再生成分阶段模块名称对照：
 
