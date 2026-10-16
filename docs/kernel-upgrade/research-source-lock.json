@@ -1,0 +1,57 @@
+{
+  "observed_date": "2026-10-16",
+  "timezone": "Asia/Singapore",
+  "status": "research_only_unbuilt_unverified_combination",
+  "purpose": "Observed public revisions for a future elden 6.12 build; not a complete repo manifest or tested source combination.",
+  "repositories": [
+    {
+      "role": "soc",
+      "url": "https://github.com/turbo-boo/android_kernel_lenovo_sm8750.git",
+      "ref": "elden-6.12",
+      "commit": "587fb3b9e6a7fea873241b8c41b911bb8af495fb",
+      "path": "vendor/lenovo/sm8750"
+    },
+    {
+      "role": "modules",
+      "url": "https://github.com/turbo-boo/android_kernel_lenovo_sm8750-modules.git",
+      "ref": "elden-6.12",
+      "commit": "2f72151adab1ed228b9c6557ae64fbabc4388d2d",
+      "path": "vendor/lenovo/sm8750-modules"
+    },
+    {
+      "role": "devicetrees",
+      "url": "https://github.com/turbo-boo/android_kernel_lenovo_sm8750-devicetrees.git",
+      "ref": "elden-6.12",
+      "commit": "dd911f5c0b6c52417b44a8f7679785b0c284b412",
+      "path": "vendor/lenovo/sm8750-devicetrees"
+    },
+    {
+      "role": "candidate_common",
+      "url": "https://android.googlesource.com/kernel/common",
+      "ref": "android16-6.12-2026-06",
+      "commit": "f47396dab9818a8cf679ac4a711a30eb5cbc68ff",
+      "path": "common",
+      "observed_makefile_version": "6.12.81",
+      "author_matching_revision_verified": false
+    },
+    {
+      "role": "candidate_kleaf",
+      "url": "https://android.googlesource.com/kernel/build",
+      "ref": "main-kernel-2025",
+      "commit": "08bb5611333aa1731ad7400e3f6e8af6500a1151",
+      "path": "build/kernel",
+      "author_matching_revision_verified": false
+    }
+  ],
+  "upstream_manifest": {
+    "url": "https://github.com/LineageOS/android",
+    "commit": "d4c6331bc603e5038a9e48f5e526e7f10c8b96d9",
+    "file": "snippets/kernel-6.12.xml"
+  },
+  "unresolved": [
+    "Complete matching manifest, Kleaf and tool dependencies",
+    "Validation of the selected common against community SoC and module sources",
+    "Current-ROM image integration and HAL/firmware interface compatibility",
+    "Linux build environment and hardware boot/function tests"
+  ]
+}

@@ -1,0 +1,133 @@
+name: Build elden kernel 6.12
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: elden-kernel-6.12-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: sun / elden · 6.12 · 4 KiB
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    env:
+      KERNEL_WORKSPACE: ${{ github.workspace }}/.work/kernel
+      BUILD_METADATA: ${{ github.workspace }}/.work/ci-metadata
+      KERNEL_DIST: ${{ github.workspace }}/.work/kernel/out/elden/dist
+      BUILD_JOBS: '2'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Check out build scripts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Record runner and reclaim unused SDK space
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$BUILD_METADATA"
+          {
+            uname -a
+            lscpu
+            free -h
+            df -h
+          } > "$BUILD_METADATA/runner-before.txt"
+          # Only paths on the disposable GitHub-hosted runner, not the user's computer.
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/powershell /usr/local/share/chromium
+          if command -v docker >/dev/null; then
+            sudo docker system prune --all --force >/dev/null
+          fi
+          df -h | tee "$BUILD_METADATA/disk-after-cleanup.txt"
+
+      - name: Install host build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            bc bison build-essential ca-certificates cpio curl device-tree-compiler \
+            file flex gawk git libelf-dev libssl-dev libncurses-dev \
+            lz4 make patch python3 rsync tar unzip xz-utils zip zstd
+
+      - name: Synchronize pinned source revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ci/sync_sources.py \
+            --workspace "$KERNEL_WORKSPACE" \
+            --metadata-dir "$BUILD_METADATA" \
+            --jobs 4 --min-free-gib 45 \
+            2>&1 | tee "$BUILD_METADATA/source-sync.log"
+
+      - name: Prepare Qualcomm Kleaf workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ci/prepare_workspace.py \
+            --workspace "$KERNEL_WORKSPACE" \
+            --metadata-dir "$BUILD_METADATA" \
+            2>&1 | tee "$BUILD_METADATA/workspace-setup.log"
+
+      - name: Build kernel, modules and device trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/ci/build_kernel.sh \
+            --workspace "$KERNEL_WORKSPACE" \
+            --metadata-dir "$BUILD_METADATA" \
+            2>&1 | tee "$BUILD_METADATA/build.log"
+
+      - name: Verify 6.12 version, 4 KiB pages and elden modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ci/verify_dist.py \
+            --dist "$KERNEL_DIST" --out "$BUILD_METADATA/verification"
+
+      - name: Bundle component build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .work/artifacts
+          tar --dereference -C "$KERNEL_DIST" -I 'zstd -T2 -5' \
+            -cf .work/artifacts/elden-6.12-components.tar.zst .
+          sha256sum .work/artifacts/elden-6.12-components.tar.zst \
+            > .work/artifacts/SHA256SUMS
+          cp "$BUILD_METADATA/verification/component-checks.md" .work/artifacts/README.md
+
+      - name: Add build result to run summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$BUILD_METADATA/verification/component-checks.md" ]; then
+            cat "$BUILD_METADATA/verification/component-checks.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf '%s\n' 'The build did not reach component verification. See the diagnostic artifact.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload diagnostics and resolved source manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: elden-6.12-diagnostics-${{ github.run_number }}
+          path: .work/ci-metadata/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload verified component build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: elden-6.12-components-${{ github.run_number }}
+          path: .work/artifacts/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

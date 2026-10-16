@@ -1,0 +1,24 @@
+{
+  "erofs_utils_version": "1.9.4",
+  "formula_source": "https://formulae.brew.sh/api/formula/erofs-utils.json",
+  "bottle_url": "https://ghcr.io/v2/homebrew/core/erofs-utils/blobs/sha256:2e9e4f282caf94e14e3fb09f4ddcf9a7efd637bb60ff777b0ce1c675769e45ee",
+  "bottle_sha256": "2e9e4f282caf94e14e3fb09f4ddcf9a7efd637bb60ff777b0ce1c675769e45ee",
+  "dump_erofs_path": "/Users/a77/Desktop/git/y700_c16/.work/super-inspection/erofs-utils/1.9.4/bin/dump.erofs",
+  "dump_erofs_sha256": "005fd45c9130ddd58172fd5df2d17c27918bc603a42ef4d74bf0f1a3f5c80755",
+  "dependencies": [
+    "/opt/homebrew/opt/lz4/lib/liblz4.1.dylib",
+    "/opt/homebrew/opt/xz/lib/liblzma.5.dylib"
+  ],
+  "source_formats": [
+    {
+      "url": "https://android.googlesource.com/platform/system/core/+/refs/heads/main/fs_mgr/liblp/include/liblp/metadata_format.h",
+      "local_file": "/Users/a77/Desktop/git/y700_c16/.work/super-inspection/metadata_format.h",
+      "sha256": "6fc7d8e07bb408c94627168ad33d063e4a7eb74a233d0d5b2e6a51afb70abd88"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/erofs/erofs-utils/master/include/erofs_fs.h",
+      "local_file": "/Users/a77/Desktop/git/y700_c16/.work/super-inspection/erofs_fs.h",
+      "sha256": "02b01a99fe3180f86bb0372efc332efc243142d37aed2819045ae69717a9c915"
+    }
+  ]
+}
