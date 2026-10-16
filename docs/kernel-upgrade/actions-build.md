@@ -20,7 +20,10 @@
 - URL：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38929346952>。
 - 触发时间：2026-10-17 00:06:49（Asia/Singapore）。
 - 提交：`9a6dc9e42cf4a9ed0f1b50178a4207652bc03417`。
-- 已确认：42 仓源码同步及固定提交核验通过；工作区准备通过；已进入 `Build kernel, modules and device trees` 步骤，运行结果待定。
+- 结果：代理在 51 分 42 秒时主动取消，以取回长期无阶段变化的日志；不是源码报错导致失败。
+- 取回诊断后确认：源码同步 432.8 秒、剩余 84.39 GiB、42 仓提交校验通过；工作区准备通过；query 很快完成；Bazel 完成分析并实际构建 common、DT 和 DDK 模块，最后记录达到 `5,197 / 5,272` action，正在编译音频模块。
+- 结论：运行确实持续推进，代理仅凭粗粒度状态持续时间而取消过早。GitHub `gh run view --log` 返回的日志不如上传的 `kernel-build.log` 完整；排错以诊断产物为准，不能据较短日志断言卡在分析阶段。
+- 后续修正：query 和编译分步显示、每分钟资源心跳、阶段用时/有限 Bazel 日志收集，Bazel 与 Kbuild 并发均显式设为 2；重跑应等待正常结束或真实失败。
 
 原 ROM 的纯元数据对照已保存在 [rom-baseline.json](../../ci/rom-baseline.json)：包含内核 banner、源镜像哈希、329 个 vendor ramdisk 模块名和 116 条早期加载项，不含固件二进制。后续校验器会列出新构建中缺失的原包模块供集成核对；原包含多平台驱动，因此不能只凭名称缺失自动判定启动必败。
 
