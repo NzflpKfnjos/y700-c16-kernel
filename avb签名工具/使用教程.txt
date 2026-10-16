@@ -1,0 +1,48 @@
+avb签名工具
+
+可以用于 联想 免解锁BL 进行root。
+
+尚未经过完全测试，且刷机有风险，因此本人不对你设备的任何损坏负责。
+刷几千万条，备份第一条
+备份不及时，机主两行泪
+
+记得备好当前系统的9008刷机包，以避免操作不当卡开机！出问题重新9008线刷一遍就行了
+2 3 4 代的9008引导我会放在网盘
+1代的签名不同，没找到密钥
+
+不想打代码就复制粘贴
+小提示：
+adb reboot edl  开机状态下输入进入 9008模式
+adb reboot bootloader 开机状态下输入进入 fastboot（FB）模式
+
+
+Y700二代（5.10）
+5.10以下使用 面具 或 内核root 都是修补boot分区！
+
+面具 或者 内核root（LKM）和（GKI模式）：
+1，（已解锁）状态下，任意刷一个root方式，例如：sukisu ultra的LKM模式。
+2，刷入AK3的压缩包，刷入成功后重启平板，打开sukisu ultra确认为 GKI2.0 模式，进入 9008 使用（刷机匣）确认当前的分区，例如：当前在 B 分区，提取对应的 boot_b.img 和 vbmeta_b.img 提取到 avb签名工具 的目录，视频有演示。
+3，然后重命名 boot_b.img 为 boot.img ，vbmeta_b.img 为 vbmeta.img 
+4，双击（面具_lkm_非链式.bat ）等它跑完，任意按一个键就行。运行时它会帮你备份。
+5，你放在 avb签名工具 目录下的 boot.img 和 vbmeta.img 就是签名跑完后的镜像，使用（刷机匣）把 avb签名工具 目录下的 boot.img 刷入 boot_b , vbmeta.img 刷入 vbmeta_b 
+6，重启后查看 sukisu ultra 是否是GKI模式
+7，进入fastboot模式回锁设备
+fastboot模式下输入：fastboot flashing lock
+音量下键，按两下到 lock the booloader 按一下开机键就回锁了
+
+————————————————————————————————————————
+
+Y700三代（6.10）和Y700四代（6.6）
+5.15以上使用 面具 或 LKM模式 都是 init_boot分区！但是Y700系列没有5.15的设备
+
+3代 4代用 （面具）或（LKM）的方法和二代类似：
+可以在没解锁时操作，但是建议在解锁状态下操作，避免各种卡机
+简单说一下：
+9008提取当前系统对应分区的init_boot.img，（修补后）的 init_boot.img 复制到电脑 avb签名工具 目录下 重命名为 init_boot.img ,确认当前在哪个分区，9008提取 vbmeta_a.img（vbmeta_b.img）到电脑 avb签名工具 目录下 重命名为 vbmeta.img ,随后 双击（面具_lkm_非链式.bat ），最后把 avb签名工具 目录下的 boot.img 和 vbmeta.img ，在9008刷入init_boot和vbmeta两个分区
+如果你 已解锁状态 操作那刷完后回锁
+如果你 没解锁状态 操作那应正常开机
+
+
+3代 4代用内核root（gki模式）（Skroot）（apatch）：
+提取（修补后）的对应分区 boot 镜像（视频里有操作方法），并重命名为（boot.img) 移动到 avb签名工具 目录下，然后，点击 （boot_gki_链式.bat ）
+随后刷入对应boot分区，开机确认模式，回锁即可
