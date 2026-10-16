@@ -13,6 +13,8 @@ import subprocess
 import tarfile
 import traceback
 
+from verify_device_trees import inspect_device_trees
+
 
 def module_info(data):
     if data[:6] != b"\x7fELF\x02\x01":
@@ -132,14 +134,8 @@ def inspect(dist):
                 version = re.match(r"(\d+\.\d+\.\d+)(?:[-+ ]|$)", vermagic)
                 if not version or version.group(1) != expected:
                     errors.append(f"Module patch version differs from Image {expected}: {module['source']}")
-    for name, magic in (("dtb.img", b"\xd0\x0d\xfe\xed"), ("dtbo.img", b"\xd7\xb7\xab\x1e")):
-        candidates = list(dist.rglob(name))
-        if not candidates:
-            errors.append(f"Missing device-tree artifact: {name}")
-        for candidate in candidates:
-            with candidate.open("rb") as source_file:
-                if source_file.read(4) != magic:
-                    errors.append(f"Invalid device-tree magic: {candidate.relative_to(dist)}")
+    device_trees = inspect_device_trees(dist)
+    errors.extend(device_trees["errors"])
     if not config:
         errors.append("No embedded IKCONFIG or exported kernel .config found")
     else:
@@ -154,6 +150,7 @@ def inspect(dist):
             "boot_tested": False, "flashable_rom_package": False,
             "elden_overlay_runtime_selection_verified": False,
             "kernel_patch_versions": sorted(kernel_versions),
+            "device_trees": device_trees,
             "limitations": "Static checks only; existing ROM integration, full symbol/UAPI validation and hardware testing remain required.",
             "errors": sorted(set(errors)), "kernels": kernels,
             "module_entries": len(modules), "unique_module_names": len(names),
@@ -165,6 +162,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dist", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--baseline", type=Path, default=Path(__file__).resolve().parents[2] / "ci/rom-baseline.json")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     try:
@@ -177,6 +175,18 @@ def main():
                   "flashable_rom_package": False,
                   "errors": [f"Artifact inspection did not complete: {exc}"],
                   "module_entries": 0, "unique_module_names": 0, "inventory": []}
+    if args.baseline.is_file() and "modules" in report:
+        baseline = json.loads(args.baseline.read_text())
+        built_names = {n for module in report["modules"] for n in module["name"]}
+        required = set(baseline["vendor_boot_module_names"])
+        # Missing baseline names are integration leads, not automatic build
+        # failures: this multi-platform ROM also carries inactive drivers.
+        report["rom_baseline_comparison"] = {
+            "baseline": baseline["source_package"],
+            "baseline_module_count": len(required),
+            "matched_count": len(required & built_names),
+            "absent_module_names_for_review": sorted(required - built_names),
+            "note": "Driver presence does not prove loaded state, ABI compatibility or equivalent replacement functionality."}
     (args.out / "component-checks.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     (args.out / "SHA256SUMS").write_text("".join(f"{x['sha256']}  {x['path']}\n" for x in report["inventory"]))
     if config:

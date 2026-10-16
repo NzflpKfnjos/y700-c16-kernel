@@ -15,6 +15,15 @@
 
 修复：移除 repo sync 的 fail-fast，让独立项目完成下载；在同一工作区为未完成项目做最多三次整体同步尝试，间隔 15/30 秒。仍保留所有固定提交验证，未通过改变源码版本来掩盖下载错误。
 
+## 第二次运行
+
+- URL：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38929346952>。
+- 触发时间：2026-10-17 00:06:49（Asia/Singapore）。
+- 提交：`9a6dc9e42cf4a9ed0f1b50178a4207652bc03417`。
+- 已确认：42 仓源码同步及固定提交核验通过；工作区准备通过；已进入 `Build kernel, modules and device trees` 步骤，运行结果待定。
+
+原 ROM 的纯元数据对照已保存在 [rom-baseline.json](../../ci/rom-baseline.json)：包含内核 banner、源镜像哈希、329 个 vendor ramdisk 模块名和 116 条早期加载项，不含固件二进制。后续校验器会列出新构建中缺失的原包模块供集成核对；原包含多平台驱动，因此不能只凭名称缺失自动判定启动必败。
+
 ## 本轮补齐的构建输入
 
 42 个源码项目和 repo 工具均锁定提交；构建从公开源码同步，不上传本地原始固件镜像。源码清单省去与该内核独立的 GBL/Fuchsia/LTP 项目，以减少 runner 磁盘占用。
