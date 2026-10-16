@@ -27,6 +27,14 @@
 
 原 ROM 的纯元数据对照已保存在 [rom-baseline.json](../../ci/rom-baseline.json)：包含内核 banner、源镜像哈希、329 个 vendor ramdisk 模块名和 116 条早期加载项，不含固件二进制。后续校验器会列出新构建中缺失的原包模块供集成核对；原包含多平台驱动，因此不能只凭名称缺失自动判定启动必败。
 
+## 第三次运行
+
+- URL：<https://github.com/NzflpKfnjos/y700-c16-kernel/actions/runs/38936781318>。
+- 触发时间：2026-10-17 01:03:51（Asia/Singapore）。
+- 提交：`4ee6e9a6443f5af654bdcb95eeb92244058506ca`。
+- 状态：已启动；以运行终态及诊断产物记录最终结果。
+- 本轮 query 与 compile 分步展示，Bazel 和 Kbuild 并发均为 2，每 60 秒记录 runner 进程、内存和磁盘使用情况；不再仅凭步骤持续时间取消任务。
+
 ## 本轮补齐的构建输入
 
 42 个源码项目和 repo 工具均锁定提交；构建从公开源码同步，不上传本地原始固件镜像。源码清单省去与该内核独立的 GBL/Fuchsia/LTP 项目，以减少 runner 磁盘占用。

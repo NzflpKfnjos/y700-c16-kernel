@@ -1,6 +1,6 @@
 # Y700 四代 elden：6.12 内核构建
 
-为 `TB322FC_CN / SM8750 sun` 的 `c16-300-9008-V17.6` 一加系统移植包准备 Linux 6.12 内核组件。当前正在验证源码集成与 GitHub Actions 首次构建。
+为 `TB322FC_CN / SM8750 sun` 的 `c16-300-9008-V17.6` 一加系统移植包准备 Linux 6.12 内核组件。当前正在 GitHub Actions 上执行完整组件构建，尚无通过验证的可刷写升级包。
 
 原包基线为 Android 16 系统层、Android 15 厂商层，以及 4 KiB 页的 `6.6.89-android15-8` 内核。原始镜像保留在本地并由 `.gitignore` 排除。
 
